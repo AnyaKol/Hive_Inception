@@ -1,4 +1,2 @@
-# ft_IRC
+# ft_Inception
 Rank-05
-
-This is a Hive school group project about creating IRC server.
