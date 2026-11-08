@@ -1,0 +1,73 @@
+# Inception - docker compose
+# Services: nginx (TLS entrypoint, port 443 only), wordpress+php-fpm, mariadb.
+# Volumes persist under /home/<login>/data on the host; secrets come from srcs/secrets/.
+
+services:
+  mariadb:
+    build: ./requirements/mariadb
+    image: mariadb
+    container_name: mariadb
+    restart: unless-stopped
+    env_file: .env
+    secrets:
+      - db_root_password
+      - db_password
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - inception
+
+  wordpress:
+    build: ./requirements/wordpress
+    image: wordpress
+    container_name: wordpress
+    restart: unless-stopped
+    depends_on:
+      - mariadb
+    env_file: .env
+    secrets:
+      - db_password
+    volumes:
+      - wp_data:/var/www/wordpress
+    networks:
+      - inception
+
+  nginx:
+    build: ./requirements/nginx
+    image: nginx
+    container_name: nginx
+    restart: unless-stopped
+    depends_on:
+      - wordpress
+    env_file: .env
+    ports:
+      - "443:443"
+    volumes:
+      - wp_data:/var/www/wordpress
+    networks:
+      - inception
+
+volumes:
+  db_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR}/mariadb
+  wp_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR}/wordpress
+
+networks:
+  inception:
+    driver: bridge
+
+secrets:
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+  db_password:
+    file: ../secrets/db_password.txt
+

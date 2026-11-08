@@ -1,0 +1,4 @@
+secrets/
+srcs/.env
+*.txt
+!README.md
