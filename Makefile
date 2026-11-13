@@ -1,26 +1,30 @@
-NAME        = inception
-COMPOSE     = docker compose
+# ---------- VARIABLES ------------------------------------------------------- #
+NAME = inception
+COMPOSE = docker compose
 COMPOSE_FILE = srcs/docker-compose.yml
-
 COMPOSE_CMD = $(COMPOSE) -f $(COMPOSE_FILE)
 
+# DATA_DIR = /home/$(USER)/data
+# Read value of DATA_DIR from ENV
+DATA_DIR := $(shell grep -E '^DATA_DIR' srcs/.env | cut -d=-f2)
+
+# ---------- RULES ----------------------------------------------------------- #
 all: up
 
-# Build images (if needed) and start containers in the background.
-up:
-	$(COMPOSE_CMD) up --build -d
+# Create data directories if necessary
+$(DATA_DIR)/mariadb:
+	mkdir -p $(DATA_DIR)/mariadb
+
+$(DATA_DIR)/wordpress:
+	mkdir -p $(DATA_DIR)/wordpress
 
 # Build images without starting containers.
-build:
+build: $(DATA_DIR)/mariadb $(DATA_DIR)/wordpress
 	$(COMPOSE_CMD) build
 
-# Start existing containers without rebuilding.
-start:
-	$(COMPOSE_CMD) start
-
-# Stop containers, keep containers and volumes.
-stop:
-	$(COMPOSE_CMD) stop
+# Build images (if needed) and start containers in the background.
+up: $(DATA_DIR)/mariadb $(DATA_DIR)/wordpress
+	$(COMPOSE_CMD) up --build -d
 
 # Stop and remove containers + networks; volumes and images are kept.
 down:
@@ -28,20 +32,16 @@ down:
 
 # Stop and remove everything in the compose file: containers, networks,
 # images and the WordPress database/website volumes.
-clean: down
-	-$(COMPOSE_CMD) down -v --rmi all
-	-docker volume rm $$(docker volume ls -q --filter name=inception_) 2>/dev/null || true
+clean:
+	$(COMPOSE_CMD) down --rmi all
 
-# Fully stop, remove data volumes and delete local images.
+# Full clean, remove data volumes and delete local images.
 fclean: clean
-	-docker system prune -af 2>/dev/null || true
+	docker volume prune -f
+	sudo rm -rf $(DATA_DIR)
 
-# Follow logs of all services.
-logs:
-	$(COMPOSE_CMD) logs -f
+# Rebuild everything
+re: fclean all
 
-# Show container status.
-ps:
-	$(COMPOSE_CMD) ps
-
-.PHONY: all up build start stop down clean fclean logs ps
+# ---------- EXTRAS ---------------------------------------------------------- #
+.PHONY: all build up down clean fclean re

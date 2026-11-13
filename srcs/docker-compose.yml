@@ -4,11 +4,15 @@
 
 services:
   mariadb:
-    build: ./requirements/mariadb
-    image: mariadb
+    build:
+      context: ./requirements/mariadb
+    image: mariadb:inception
     container_name: mariadb
-    restart: unless-stopped
+    restart: always
     env_file: .env
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
     secrets:
       - db_root_password
       - db_password
@@ -18,32 +22,43 @@ services:
       - inception
 
   wordpress:
-    build: ./requirements/wordpress
-    image: wordpress
+    build:
+      context: ./requirements/wordpress
+    image: wordpress:inception
     container_name: wordpress
-    restart: unless-stopped
+    restart: always
     depends_on:
       - mariadb
     env_file: .env
+    environment:
+      DB_HOST: mariadb
+      DB_NAME: ${MYSQL_DATABASE}
+      DB_USER: ${MYSQL_USER}
+      WP_TABLE_PREFIX: wp_
     secrets:
       - db_password
+      - wp_admin_password
+      - wp_user_password
     volumes:
-      - wp_data:/var/www/wordpress
+      - wp_data:/var/www/html
     networks:
       - inception
 
   nginx:
-    build: ./requirements/nginx
-    image: nginx
+    build:
+      context: ./requirements/nginx
+    image: nginx:inception
     container_name: nginx
-    restart: unless-stopped
+    restart: always
     depends_on:
       - wordpress
     env_file: .env
+    environment:
+      DOMAIN_NAME: ${DOMAIN_NAME}
     ports:
       - "443:443"
     volumes:
-      - wp_data:/var/www/wordpress
+      - wp_data:/var/www/html
     networks:
       - inception
 
@@ -70,4 +85,7 @@ secrets:
     file: ../secrets/db_root_password.txt
   db_password:
     file: ../secrets/db_password.txt
-
+  wp_admin_password:
+    file: ../secrets/wp_admin_password.txt
+  wp_user_password:
+    file: ../secrets/wp_user_password.txt
