@@ -3,4 +3,5 @@ secrets/
 srcs/.env
 *.txt
 *.pdf
+patches/
 *.patch
