@@ -1,0 +1,8 @@
+[mariadbd]
+bind-address = 0.0.0.0
+port = 3306
+socket = /var/run/mysqld/mysqld.sock
+datadir = /var/lib/mysql
+log-error = /var/log/mysql/error.log
+pid-file = /var/run/mysqld/mysqld.pid
+skip-networking = 0
