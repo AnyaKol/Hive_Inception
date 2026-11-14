@@ -1,5 +1,4 @@
 .gitignore
-*.txt
 *.pdf
 patches/
 *.patch
