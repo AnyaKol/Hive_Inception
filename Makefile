@@ -4,9 +4,9 @@ COMPOSE = docker compose
 COMPOSE_FILE = srcs/docker-compose.yml
 COMPOSE_CMD = $(COMPOSE) -f $(COMPOSE_FILE)
 
-# DATA_DIR = /home/$(USER)/data
+DATA_DIR = /home/$(USER)/data
 # Read value of DATA_DIR from ENV
-DATA_DIR := $(shell grep -E '^DATA_DIR' srcs/.env | cut -d=-f2)
+# DATA_DIR := $(shell grep -E '^DATA_DIR' srcs/.env | cut -d=-f2)
 
 # ---------- RULES ----------------------------------------------------------- #
 all: up

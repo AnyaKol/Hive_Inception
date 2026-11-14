@@ -10,7 +10,6 @@ docker network ls
 ## Inspect the network
 docker network inspect inception-network
 
-
 ## Connect a running container
 docker network connect inception-network <container_id_or_name>
 
@@ -19,7 +18,6 @@ docker run --rm --name client --network inception-network -d httpd
 
 ## To enter shell
 docker exec -it client sh
-
 
 ## If ping is missing
 apk add iputils    # For Alpine
@@ -49,9 +47,9 @@ docker run -d \
 ## Then
 docker exec -it docker_id_name cat /var/www/html/wp-config.php
 
-
 ## And then check with:
 cat /var/www/html/wp-config.php
+
 
 # Nginx
 ## Check certificate
@@ -64,6 +62,7 @@ docker volume create wordpress_data
 
 ## Inspect a volume
 docker volume inspect mariadb_data
+
 
 # Testing
 ## Check container status:
@@ -113,6 +112,7 @@ du -sh /home/${USER}/data/*
 
 ### Monitor network
 docker exec nginx ss -tuln
+
 
 # Docker containers basic commands
 ## To build

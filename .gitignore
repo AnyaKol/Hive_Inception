@@ -1,6 +1,4 @@
 .gitignore
-secrets/
-srcs/.env
 *.txt
 *.pdf
 patches/
