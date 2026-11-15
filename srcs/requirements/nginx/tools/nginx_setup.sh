@@ -7,7 +7,7 @@ mkdir -p /etc/nginx/ssl
 
 # Default domain if not provided
 export DOMAIN_NAME="${DOMAIN_NAME:-localhost}"
-envsubst '${DOMAIN_NAME}' < /etc/nginx/templates/nginx.conf.template > /etc/nginx/nginx.conf
+envsubst '${DOMAIN_NAME} ${HTTPS_PORT}' < /etc/nginx/templates/nginx.conf.template > /etc/nginx/nginx.conf
 
 # Generate SSL certificate if it doesn't exist
 if [ ! -f /etc/nginx/ssl/nginx.crt ]; then

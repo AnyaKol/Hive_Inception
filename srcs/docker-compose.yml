@@ -56,7 +56,7 @@ services:
     environment:
       DOMAIN_NAME: ${DOMAIN_NAME}
     ports:
-      - "443:443"
+      - "${HTTPS_PORT}:${HTTPS_PORT}"
     volumes:
       - wp_data:/var/www/html
     networks:

@@ -4,9 +4,9 @@ COMPOSE = docker compose
 COMPOSE_FILE = srcs/docker-compose.yml
 COMPOSE_CMD = $(COMPOSE) -f $(COMPOSE_FILE)
 
-DATA_DIR = /home/$(USER)/data
+# DATA_DIR = /home/$(USER)/data
 # Read value of DATA_DIR from ENV
-# DATA_DIR := $(shell grep -E '^DATA_DIR' srcs/.env | cut -d=-f2)
+include srcs/.env
 
 # ---------- RULES ----------------------------------------------------------- #
 all: up
@@ -35,9 +35,10 @@ down:
 clean:
 	$(COMPOSE_CMD) down --rmi all
 
-# Full clean, remove data volumes and delete local images.
+# Full clean, remove data volumes and delete local images (-v removes volumes
+# defined in compose file)
 fclean: clean
-	docker volume prune -f
+	$(COMPOSE_CMD) down -v
 	sudo rm -rf $(DATA_DIR)
 
 # Rebuild everything

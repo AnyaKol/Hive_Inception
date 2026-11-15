@@ -8,10 +8,11 @@ ENV WP_CLI_SHA256="ce34ddd838f7351d6759068d09793f26755463b4a4610a5a5c0a97b68220d
 # Download and extract WordPress at build time (pinned version)
 ENV WP_VERSION=6.8.2
 
-RUN wget -q https://wordpress.org/wordpress-${WP_VERSION}.tar.gz -O /tmp/wp.tar.gz \
-    && tar -xzf /tmp/wp.tar.gz -C /usr/src/ \
-    && rm /tmp/wp.tar.gz \
-    && mv /usr/src/wordpress /usr/src/wordpress-src
+RUN mkdir -p /usr/src \
+  && wget -q https://wordpress.org/wordpress-${WP_VERSION}.tar.gz -O /tmp/wp.tar.gz \
+  && tar -xzf /tmp/wp.tar.gz -C /usr/src/ \
+  && rm /tmp/wp.tar.gz \
+  && mv /usr/src/wordpress /usr/src/wordpress-src
 
 # Install PHP-FPM and required extensions
 RUN apk add --no-cache \
@@ -26,6 +27,7 @@ RUN apk add --no-cache \
   php83-xml \
   php83-phar \
   php83-session \
+  php83-tokenizer \
   mariadb-client \
   curl \
   # Create www-data user and group if they do not exist
