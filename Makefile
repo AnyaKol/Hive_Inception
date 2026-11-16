@@ -30,8 +30,8 @@ up: $(DATA_DIR)/mariadb $(DATA_DIR)/wordpress
 down:
 	$(COMPOSE_CMD) down
 
-# Stop and remove everything in the compose file: containers, networks,
-# images and the WordPress database/website volumes.
+# Stop and remove containers + networks, and delete the project images.
+# Volumes and the data in $(DATA_DIR) are kept.
 clean:
 	$(COMPOSE_CMD) down --rmi all
 
