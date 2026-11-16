@@ -57,7 +57,6 @@ The stack serves a WordPress website over HTTPS:
         │   │   └──nginx.conf
         │   └──tools
         │       └──nginx_setup.sh
-        │
         └── wordpress/
             ├──Dockerfile
             ├──conf
