@@ -6,8 +6,8 @@
 
 Inception is a system administration project. The goal is to build a small web
 infrastructure with Docker Compose, where every service runs in its own
-container built from a Dockerfile written by hand. No ready-made images are
-used except the Alpine base image.
+container built from a Dockerfile. No ready-made images are used except the
+Alpine base image.
 
 The stack serves a WordPress website over HTTPS:
 
@@ -45,9 +45,25 @@ The stack serves a WordPress website over HTTPS:
     ├── .env                  non-secret settings (domain, data dir, users, port)
     ├── docker-compose.yml    services, network, volumes, secrets
     └── requirements/
-        ├── mariadb/          Dockerfile, conf/mariadb.cnf, tools/mariadb_init.sh
-        ├── nginx/            Dockerfile, conf/nginx.conf, tools/nginx_setup.sh
-        └── wordpress/        Dockerfile, conf/wordpress.conf, tools/wordpress_setup.sh
+        ├── mariadb/
+        │   ├──Dockerfile
+        │   ├──conf
+        │   │   └──mariadb.cnf
+        │   └──tools
+        │       └──mariadb_init.sh
+        ├── nginx/
+        │   ├──Dockerfile
+        │   ├──conf
+        │   │   └──nginx.conf
+        │   └──tools
+        │       └──nginx_setup.sh
+        │
+        └── wordpress/
+            ├──Dockerfile
+            ├──conf
+            │   └──wordpress.conf
+            └──tools
+                └──wordpress_setup.sh
 ```
 
 Each service has a `Dockerfile`, a `conf/` folder with its configuration and a
@@ -71,7 +87,7 @@ Each service has a `Dockerfile`, a `conf/` folder with its configuration and a
 ### Main design choices
 
 - **Base image:** `alpine:3.23` for all three images. It is small, quick to
-  build, and the tag is pinned (no `latest`).
+  build and the tag is pinned (no `latest`).
 - **PID 1:** every entrypoint script ends with `exec`, so the real daemon
   (nginx, php-fpm, mariadbd) becomes PID 1, runs in the foreground and gets
   stop signals directly. There is no `tail -f`, `sleep infinity` or
@@ -85,7 +101,8 @@ Each service has a `Dockerfile`, a `conf/` folder with its configuration and a
   `${USER}` in `srcs/.env`. The Makefile includes the same file, so the
   project runs without changes on any machine.
 - **Users:** the WordPress administrator is called `chief`, because the
-  subject forbids names containing "admin". The second user is `editor`.
+  subject forbids names containing "admin". The second user is `editor` and
+  has role `editor` - ability to edit other peoples posts.
 
 ### Virtual Machines vs Docker
 
@@ -93,20 +110,20 @@ A virtual machine emulates a whole computer and runs its own kernel on top of
 a hypervisor. That gives strong isolation, but each VM needs gigabytes of disk,
 reserved RAM and a full OS boot. A Docker container is an isolated process
 that shares the host kernel, kept apart with namespaces and cgroups. It starts
-in about a second, its image is only megabytes, and many containers can run on
+in about a second, its image is only megabytes and many containers can run on
 one host. The cost is weaker isolation, since all containers share one kernel.
-In this project the whole stack runs inside one VM, and Docker splits the
+In this project the whole stack runs inside one VM and Docker splits the
 services inside it.
 
 ### Secrets vs Environment Variables
 
 Environment variables are easy to use, but they can be read by anything that
 can inspect the container. They show up in `docker inspect`, are inherited by
-child processes, and often end up in logs. Docker secrets are mounted as files
-under `/run/secrets/`, only in the containers that list them, and never appear
+child processes and often end up in logs. Docker secrets are mounted as files
+under `/run/secrets/` only in the containers that list them and never appear
 in `docker inspect`. This project keeps non-sensitive settings (domain, user
 names, database name) in `srcs/.env` and all four passwords in Docker secrets.
-The entrypoint scripts read the passwords from `/run/secrets/<name>`, and no
+The entrypoint scripts read the passwords from `/run/secrets/<name>` and no
 password is written into a Dockerfile.
 
 ### Docker Network vs Host Network
@@ -116,7 +133,7 @@ port it opens is opened on the host and nothing is isolated. A user-defined
 bridge network (`inception` here) gives the containers a private network with
 built-in DNS, so they find each other by service name (`mariadb`,
 `wordpress`). Only the ports listed under `ports:` are reachable from outside.
-Here only nginx publishes a port. MariaDB (3306) and php-fpm (9000) can be
+Here only nginx publishes a port (443). MariaDB (3306) and php-fpm (9000) can be
 reached only from inside the network.
 
 ### Docker Volumes vs Bind Mounts
@@ -129,7 +146,7 @@ removed with `docker compose down -v`. The subject requires the data to live
 in `/home/<login>/data`. This project therefore uses **named volumes**
 (`db_data`, `wp_data`) with the `local` driver and `o: bind` options that point
 them to `${DATA_DIR}/mariadb` and `${DATA_DIR}/wordpress`. Docker manages them
-as volumes, and the data stays in the folder the subject asks for.
+as volumes and the data stays in the folder the subject asks for.
 
 ## Instructions
 
@@ -177,6 +194,8 @@ openssl s_client -connect $USER.42.fr:443 -tls1_2 </dev/null  # TLS check
 
 ## Resources
 
+- [Docker containers – How to Think About It by Eduardo Gonzalo](https://dev.to/educhigon/docker-containers-how-to-think-about-it-inception-42-exercise-4op9)
+- [InceptionVm-guide by Bakr-1](https://github.com/Bakr-1/inceptionVm-guide)
 - [Docker documentation](https://docs.docker.com/), especially
   [Dockerfile best practices](https://docs.docker.com/build/building/best-practices/)
 - [Docker Compose file reference](https://docs.docker.com/reference/compose-file/)
@@ -196,16 +215,16 @@ openssl s_client -connect $USER.42.fr:443 -tls1_2 </dev/null  # TLS check
 
 ### Use of AI
 
-An AI assistant (Claude) was used as a helper, not to write the project:
+First instance of this project was created without AI help, only online
+documentation and other peoples examples and guides were used. Then an AI
+assistant (Claude Code) was used in multiple ways to assist:
 
-- **Explanations:** asking about Docker concepts such as PID 1 and `exec`,
-  secrets, how named volumes with bind options work, and php-fpm/nginx
-  FastCGI settings. Every answer was checked against the official
-  documentation.
+- **Explanations:** providing answeres for question posed by the subject
+  such as meaning of having secrets files instead of environment variables,
+  how named volumes with bind options work, which ports are reachable from
+  outside of the network.
 - **Review:** checking the configuration against the subject's rules (no
-  forbidden patterns, no passwords in Dockerfiles, no hardcoded login).
-- **Documentation:** helping to structure and phrase this README. The content
-  was reviewed and corrected by hand.
-
-All Dockerfiles, scripts and configuration files were written, tested and
-understood by the author. Each part can be explained during the evaluation.
+  forbidden patterns, no passwords in Dockerfiles, no hardcoded login) and
+  troubleshooting errors during execution.
+- **Documentation:** providing first draft of documentation: this README,
+  USER_DOC and DEV_DOC. The content was then reviewed manually.

@@ -127,27 +127,33 @@ alias dc='docker compose -f srcs/docker-compose.yml'
 Volume and network names get the Compose project name as a prefix. The project
 name is the folder of the compose file (`srcs`), hence `srcs_db_data`.
 
-Useful checks from inside the containers:
+TLS check (from the host):
 
 ```sh
 dc exec mariadb sh -c 'mariadb -u root -p"$(cat /run/secrets/db_root_password)" -e "SHOW DATABASES; SELECT user,host FROM mysql.user;"'
 dc exec wordpress wp user list --path=/var/www/html
 dc exec nginx nginx -T | grep ssl_protocols
-openssl s_client -connect $USER.42.fr:443 -tls1_1 </dev/null   # must fail
+openssl s_client -connect $USER.42.fr:443 -tls1_1 -cipher 'DEFAULT:@SECLEVEL=0' </dev/null   # must fail
 openssl s_client -connect $USER.42.fr:443 -tls1_2 </dev/null   # must succeed
+openssl s_client -connect $USER.42.fr:443 -tls1_3 </dev/null   # must succeed
 ```
+
+Nginx uses TLSv1.2 and TLSv1.3 ssl protocols. The TLSv1.1 is an older version
+that browsers no longer accept. It is can also be rejected by OS before
+reaching nginx, that is why parameter `-cipher 'DEFAULT:@SECLEVEL=0'` is added
+to turns that client-side limit off and demonstrate rejection by nginx.
 
 ## 4. Where data is stored and how it persists
 
-| Volume    | Mounted in                           | Host folder                 | Contents                              |
-|-----------|--------------------------------------|-----------------------------|---------------------------------------|
-| `db_data` | `mariadb:/var/lib/mysql`             | `$(DATA_DIR)/mariadb`       | MariaDB data files                    |
+| Volume    | Mounted in  | Host folder       | Contents     |
+|-----------|--------------|----------------|---------------|
+| `db_data` | `mariadb:/var/lib/mysql`   | `$(DATA_DIR)/mariadb` | MariaDB data files |
 | `wp_data` | `wordpress:/var/www/html`, `nginx:/var/www/html` | `$(DATA_DIR)/wordpress` | WordPress core, `wp-config.php`, themes, plugins, uploads |
 
 Both are named volumes with the `local` driver and the options
 `type: none, o: bind, device: ...`. Docker manages them as volumes, but the
 files live in `/home/<login>/data` as the subject requires. The folders must
-exist before `up`, and the Makefile creates them.
+exist before `up` and the Makefile creates them.
 
 How long things last:
 

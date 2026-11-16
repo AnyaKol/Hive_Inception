@@ -5,11 +5,11 @@ website. It doesn't assume you know Docker.
 
 ## What the stack provides
 
-| Service       | What it does                                                                 | Reachable from          |
+| Service       | What it does   | Reachable from          |
 |---------------|------------------------------------------------------------------------------|-------------------------|
 | **nginx**     | Web server and the only entry point. Serves the site over HTTPS (TLS 1.2/1.3) | `https://<login>.42.fr` (port 443) |
-| **WordPress** | The website and its admin panel, run by PHP-FPM                              | Only through nginx      |
-| **MariaDB**   | The database that stores posts, pages, users and settings                    | Only from WordPress     |
+| **WordPress** | The website and its admin panel, run by PHP-FPM | Only through nginx |
+| **MariaDB**   | The database that stores posts, pages, users and settings | Only from WordPress |
 
 You only ever talk to nginx. WordPress and MariaDB can't be reached from
 outside the stack.
@@ -27,7 +27,7 @@ Run every command from the root of the repository.
 | Start over from an empty site                | `make re`     |
 
 The first start takes a minute or two, while WordPress is installed. Later
-starts are quick, and your posts, users and settings are kept.
+starts are quick and your posts, users and settings are kept.
 
 > ⚠️ `make fclean` and `make re` permanently delete the database and the
 > website files in `/home/<login>/data`. They ask for your `sudo` password.
@@ -35,7 +35,7 @@ starts are quick, and your posts, users and settings are kept.
 ## Accessing the website
 
 1. The domain `<login>.42.fr` must point to your machine. If the site doesn't
-   open, add it once:
+   open, add it to your computer's known hosts:
 
    ```sh
    echo "127.0.0.1 $USER.42.fr" | sudo tee -a /etc/hosts
