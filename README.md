@@ -1,5 +1,35 @@
 *This project has been created as part of the 42 curriculum by akolupae.*
 
+# Intro
+
+This version of the project is **not ready for evaluation**: it has *secrets* folder and environment file *.env* tracked by Git.
+
+Additionally here is little guide on how to transfer this project into Virtual Machine:
+
+## Transferring project into VM
+
+NAT + Port Forwarding (default VirtualBox setup):
+
+1. In VirtualBox (VM powered off): Settings → Network → Adapter 1 → Advanced → Port Forwarding → add a rule:
+
+  - Protocol: TCP
+  - Host IP: 127.0.0.1
+  - Host Port: 2222
+  - Guest Port: 4242 (port number in VM in /etc/ssh/sshd_config was changed during setup 22 → 4242)
+
+2. On the VM, make sure SSH server is running:
+
+  ```sh
+  sudo systemctl start ssh
+  ```
+
+3. On the host, copy your file:
+
+  ```sh
+  scp -r -P 2222 ~/path/to/project_folder vm_username@localhost:~/
+  ```
+
+
 # Inception
 
 ## Description
